@@ -11,7 +11,10 @@ int main() {
         "port=8080\n"
         "debug=true\n"
         "app_name=ConfigSystem\n"
-        "timeout=1.5\n";
+        "timeout=1.5\n"
+        "db.host = localhost\n"
+        "db.port = 5432\n"
+        "a.b.c.d = nested_value\n";
 
     // Parse the sample configuration text.
     ConfigParser parser;
@@ -23,6 +26,9 @@ int main() {
     std::string appName = cfg.get<std::string>("app_name").value_or("<unknown>");
     double timeout = cfg.get<double>("timeout").value_or(0.0);
     std::string unknownParameter = cfg.get<std::string>("unknown").value_or("<No such parameter>");
+    int dbPort = cfg.get<int>("db.port").value_or(0);
+    std::string wrongNestedValue = cfg.get<std::string>("a.b.c").value_or("<unknown>");
+    std::string correctNestedValue = cfg.get<std::string>("a.b.c.d").value_or("<unknown>");
 
     // Print the configuration values to standard output.
     std::cout << "port = " << port << "\n";
@@ -30,6 +36,8 @@ int main() {
     std::cout << "app_name = " << appName << "\n";
     std::cout << "timeout = " << timeout << "\n";
     std::cout << "unknown = " << unknownParameter << "\n";
-
+    std::cout << "db.port = " << dbPort << "\n";
+    std::cout << "a.b.c.d = " << correctNestedValue << "\n";
+    std::cout << "a.b.c = " << wrongNestedValue << "\n";
     return 0;
 }

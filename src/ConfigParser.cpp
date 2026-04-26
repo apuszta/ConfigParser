@@ -40,6 +40,22 @@ std::optional<bool> try_parse_bool(std::string_view sv) {
     return std::nullopt;
 }
 
+// Trim whitespace from the beginning and end of a token.
+// This helper is internal to parsing and keeps keys/values normalized.
+static std::string_view trim(std::string_view sv) {
+    auto is_space = [](unsigned char c) { return std::isspace(c); };
+
+    auto first = std::ranges::find_if_not(sv, is_space);
+    auto last_rev = std::ranges::find_if_not(sv | std::views::reverse, is_space);
+    auto last = last_rev.base();
+
+    if (first >= last) {
+        return std::string_view{};
+    }
+
+    return std::string_view(first, last - first);
+}
+
 Config ConfigParser::parseConfig(std::string_view text) const {
     Config config;
 
@@ -52,14 +68,14 @@ Config ConfigParser::parseConfig(std::string_view text) const {
             continue;
         }
 
-        auto keyPart = *it;
+        auto keyPart = trim(std::string_view((*it).begin(), std::ranges::distance(*it)));
         ++it;
 
         if (it == std::ranges::end(parts)) {
             continue;
         }
 
-        auto valuePart = *it;
+        auto valuePart = trim(std::string_view((*it).begin(), std::ranges::distance(*it)));
 
         auto to_sv = [](auto subrange) {
             return std::string_view(subrange.begin(), std::ranges::distance(subrange));
@@ -69,13 +85,13 @@ Config ConfigParser::parseConfig(std::string_view text) const {
         std::string_view value = to_sv(valuePart);
 
         if (auto intValue = try_parse_int(value)) {
-            config.set(std::string(key), *intValue);
+            config.set(std::string(key), ConfigValue{*intValue});
         } else if (auto doubleValue = try_parse_double(value)) {
-            config.set(std::string(key), *doubleValue);
+            config.set(std::string(key), ConfigValue{*doubleValue});
         } else if (auto boolValue = try_parse_bool(value)) {
-            config.set(std::string(key), *boolValue);
+            config.set(std::string(key), ConfigValue{*boolValue});
         } else {
-            config.set(std::string(key), std::string(value));
+            config.set(std::string(key), ConfigValue{std::string(value)});
         }
     }
 
