@@ -1,6 +1,7 @@
 #include "Config.h"
 
 #include <utility>
+#include <stdexcept>
 
 void Config::set(std::string_view key, ConfigValue value) {
     auto* current = &root;
@@ -68,9 +69,23 @@ std::optional<T> Config::get(std::string_view key) const {
     return std::nullopt;
 }
 
+template<typename T>
+T Config::require(std::string_view key) const {
+    auto val = get<T>(key);
+    if (!val) {
+        throw std::runtime_error("Missing config key: " + std::string(key));
+    }
+    return *val;
+}
+
 // Explicit instantiations for the types currently used by the project.
 template std::optional<int> Config::get<int>(const std::string_view key) const;
 template std::optional<bool> Config::get<bool>(const std::string_view key) const;
 template std::optional<std::string> Config::get<std::string>(const std::string_view key) const;
 template std::optional<double> Config::get<double>(const std::string_view key) const;
 template std::optional<ConfigValue::Map> Config::get<ConfigValue::Map>(const std::string_view key) const;
+template int Config::require<int>(const std::string_view key) const;
+template bool Config::require<bool>(const std::string_view key) const;
+template std::string Config::require<std::string>(const std::string_view key) const;
+template double Config::require<double>(const std::string_view key) const;
+template ConfigValue::Map Config::require<ConfigValue::Map>(const std::string_view key) const;

@@ -33,6 +33,11 @@ struct Config {
         // If the key already exists, it is replaced.
         void set(std::string_view key, ConfigValue value);
 
+        // Similar to get<T> but throws an exception if the key is missing or
+        // cannot be converted to T. This is useful for required configuration parameters.
+        template<typename T>
+        T require(std::string_view key) const;
+
     private:
         // Helper function to navigate to the nested map for a given key path.
         // Returns a pointer to the map where the final value should be stored.
