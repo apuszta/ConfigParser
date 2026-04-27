@@ -1,6 +1,6 @@
-# ConfigSystem
+# ConfigParser
 
-`ConfigSystem` is a simple C++ project that reads text configuration in `key=value` format and stores the settings in typed `ConfigValue` objects.
+`ConfigParser` is a simple C++ project that reads text configuration in `key=value` format and stores the settings in typed `ConfigValue` objects.
 
 ## Main files
 
