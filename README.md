@@ -41,7 +41,7 @@ cmake --build build
 Run on Windows:
 
 ```bash
-build\ConfigSystem.exe
+build\ConfigParser.exe
 ```
 
 ## Notes
