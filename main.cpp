@@ -1,8 +1,10 @@
 #include "Config.h"
 #include "ConfigParser.h"
+#include "AppConfig.h"
+#include "Binder.h"
 #include <iostream>
 
-// Example application entry point for the ConfigSystem project.
+// Example application entry point for the ConfigParser project.
 //
 // Constructs a sample configuration text, parses it into a Config object,
 // then reads typed values back from that object and prints them.
@@ -10,7 +12,7 @@ int main() {
     const std::string configText =
         "port=8080\n"
         "debug=true\n"
-        "app_name=ConfigSystem\n"
+        "app_name=ConfigParser\n"
         "timeout=1.5\n"
         "db.host = localhost\n"
         "db.port = 5432\n"
@@ -30,6 +32,9 @@ int main() {
     std::string wrongNestedValue = cfg.get<std::string>("a.b.c").value_or("<unknown>");
     std::string correctNestedValue = cfg.get<std::string>("a.b.c.d").value_or("<unknown>");
 
+    Binder binder(cfg);
+    const AppConfig appConfig = binder.bind<AppConfig>();
+
     // Print the configuration values to standard output.
     std::cout << "port = " << port << "\n";
     std::cout << "debug = " << std::boolalpha << debug << "\n";
@@ -39,5 +44,9 @@ int main() {
     std::cout << "db.port = " << dbPort << "\n";
     std::cout << "a.b.c.d = " << correctNestedValue << "\n";
     std::cout << "a.b.c = " << wrongNestedValue << "\n";
+
+    std::cout << "AppConfig.db.host = " << appConfig.db.host << "\n";
+    std::cout << "AppConfig.db.port = " << appConfig.db.port << "\n";
+    std::cout << "AppConfig.debug = " << std::boolalpha << appConfig.debug << "\n";
     return 0;
 }

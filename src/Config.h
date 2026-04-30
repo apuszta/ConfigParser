@@ -38,6 +38,8 @@ struct Config {
         template<typename T>
         T require(std::string_view key) const;
 
+        const Map& getRoot() const { return root; }
+
     private:
         // Helper function to navigate to the nested map for a given key path.
         // Returns a pointer to the map where the final value should be stored.
