@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Config.h"
+#include "Node.h"
 #include <string_view>
 
 // ConfigParser is responsible for parsing plain text configuration input
@@ -12,5 +12,11 @@ class ConfigParser {
         //
         // Expected format for each line: key=value
         // Supported value types are int, double, bool, and string.
-        Config parseConfig(std::string_view text) const;
+        Node parseConfig(std::string_view text) const;
+
+        void insert(
+            Node::Map& root,
+            std::string_view path,
+            const std::string& value
+        ) const;
 };

@@ -20,33 +20,33 @@ int main() {
 
     // Parse the sample configuration text.
     ConfigParser parser;
-    Config cfg = parser.parseConfig(configText);
+    Node root = parser.parseConfig(configText);
 
     // Retrieve typed values from the parsed configuration.
-    int port = cfg.get<int>("port").value_or(0);
-    bool debug = cfg.get<bool>("debug").value_or(false);
-    std::string appName = cfg.get<std::string>("app_name").value_or("<unknown>");
-    double timeout = cfg.get<double>("timeout").value_or(0.0);
-    std::string unknownParameter = cfg.get<std::string>("unknown").value_or("<No such parameter>");
-    int dbPort = cfg.get<int>("db.port").value_or(0);
-    std::string wrongNestedValue = cfg.get<std::string>("a.b.c").value_or("<unknown>");
-    std::string correctNestedValue = cfg.get<std::string>("a.b.c.d").value_or("<unknown>");
+    // int port = root.get("port").value_or(0);
+    // bool debug = root.get("debug").value_or(false);
+    // std::string appName = root.get<std::string>("app_name").value_or("<unknown>");
+    // double timeout = root.get<double>("timeout").value_or(0.0);
+    // std::string unknownParameter = root.get<std::string>("unknown").value_or("<No such parameter>");
+    // int dbPort = root.get<int>("db.port").value_or(0);
+    // std::string wrongNestedValue = root.get<std::string>("a.b.c").value_or("<unknown>");
+    // std::string correctNestedValue = root.get<std::string>("a.b.c.d").value_or("<unknown>");
 
-    Binder binder(cfg);
+    Binder binder(root);
     const AppConfig appConfig = binder.bind<AppConfig>();
 
     // Print the configuration values to standard output.
-    std::cout << "port = " << port << "\n";
-    std::cout << "debug = " << std::boolalpha << debug << "\n";
-    std::cout << "app_name = " << appName << "\n";
-    std::cout << "timeout = " << timeout << "\n";
-    std::cout << "unknown = " << unknownParameter << "\n";
-    std::cout << "db.port = " << dbPort << "\n";
-    std::cout << "a.b.c.d = " << correctNestedValue << "\n";
-    std::cout << "a.b.c = " << wrongNestedValue << "\n";
+    // std::cout << "port = " << port << "\n";
+    // std::cout << "debug = " << std::boolalpha << debug << "\n";
+    // std::cout << "app_name = " << appName << "\n";
+    // std::cout << "timeout = " << timeout << "\n";
+    // std::cout << "unknown = " << unknownParameter << "\n";
+    // std::cout << "db.port = " << dbPort << "\n";
+    // std::cout << "a.b.c.d = " << correctNestedValue << "\n";
+    // std::cout << "a.b.c = " << wrongNestedValue << "\n";
 
-    std::cout << "AppConfig.db.host = " << appConfig.db.host << "\n";
-    std::cout << "AppConfig.db.port = " << appConfig.db.port << "\n";
-    std::cout << "AppConfig.debug = " << std::boolalpha << appConfig.debug << "\n";
+    // std::cout << "AppConfig.db.host = " << appConfig.db.host << "\n";
+    // std::cout << "AppConfig.db.port = " << appConfig.db.port << "\n";
+    // std::cout << "AppConfig.debug = " << std::boolalpha << appConfig.debug << "\n";
     return 0;
 }

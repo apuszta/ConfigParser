@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(ConfigParser LANGUAGES CXX)
 
+find_package(Git REQUIRED)
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -8,23 +10,22 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_executable(ConfigParser
     main.cpp
-    src/Config.cpp
     src/ConfigParser.cpp
+    src/Binder.cpp
 )
 
 target_include_directories(ConfigParser PRIVATE src)
 
-
 include(FetchContent)
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/heads/main.zip
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(unit_tests tests/ParserTests.cpp src/ConfigParser.cpp src/Config.cpp)
+add_executable(unit_tests tests/ParserTests.cpp src/ConfigParser.cpp src/Binder.cpp)
 target_link_libraries(unit_tests GTest::gtest_main)
 
 include(GoogleTest)

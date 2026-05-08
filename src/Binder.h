@@ -2,6 +2,9 @@
 
 #include "Config.h"
 #include "Descriptor.h"
+#include "Node.h"
+#include "Helper.h"
+#include "ConfigError.h"
 
 #include <stdexcept>
 
@@ -12,57 +15,73 @@ struct BindOptions {
 
 class Binder{
     private:
-        const Config& config;
+        const Node& root;
     public:
-        explicit Binder(const Config& config) : config(config) {}
+        explicit Binder(const Node& root) : root(root) {}
 
         template<Bindable T>
         T bind(BindOptions options = BindOptions{}) const{
-            ConfigValue root;
-            root.value = config.getRoot();
-            return convert<T>(root);
+            return convert<T>(root, "config");
         }
 
     protected:
         template<typename T>
-        T convert(const ConfigValue& v) const{
+        T convert(const Node& node, const std::string& path) const {
             if constexpr (Bindable<T>) {
-                if (!std::holds_alternative<ConfigValue::Map>(v.value)) {
-                    throw std::runtime_error("Expected a map for binding to struct");
+                if (!node.isObject()) {
+                    throw ConfigError(path, "expected object");
                 }
 
-                const auto& fieldMap = std::get<ConfigValue::Map>(v.value);
-                const auto& fields = Descriptor<T>::fields;
-
-                T obj{};
-
-                std::apply([&](auto&&... field) {
-                    (
-                        [&]() {
-                            const auto& f = field;
-                            const char* fieldName = f.name;
-                            auto it = fieldMap.find(fieldName);
-                            if (it == fieldMap.end()) {
-                                if (f.required) {
-                                    throw std::runtime_error("Missing required config key: " + std::string(fieldName));
-                                }
-                                return;
-                            }
-
-                            const ConfigValue& fieldValue = it->second;
-                            auto convertedValue = convert<std::remove_reference_t<decltype(obj.*(f.member))>>(fieldValue);
-                            obj.*(f.member) = convertedValue;
-                        }(),
-                        ...
-                    );
-                }, fields);
-
-                return obj;
-            }else {
-                if (std::holds_alternative<T>(v.value)) {
-                    return std::get<T>(v.value);
-                }
-                throw std::runtime_error("Cannot convert ConfigValue to requested type");
+                return bind_fields<T>(node, path);
+            } else {
+                return convertScalar<T>(node, path);
             }
         }
+
+        template<typename T, typename Tuple>
+        T bind_fields_impl(
+            const Node& node,
+            const std::string& path,
+            const Tuple& fields
+        ) const {
+            T obj{};
+
+            const auto* map = node.asObject();
+
+            std::apply([&](auto&&... field) {((
+                    [&]() {
+                        const auto& f = field;
+                        const Node* child = node.get(f.name);
+                        std::string child_path = PathHelper::join_path(path, f.name);
+
+                        if (!child) {
+                            if (f.required) {
+                                throw ConfigError(child_path, "missing required field");
+                            }
+                            return;
+                        }
+
+                        using MemberType = std::remove_reference_t<decltype(obj.*(f.member))>;
+
+                        obj.*(f.member) = convert<MemberType>(*child, child_path);
+                    }()
+                ), ...);
+            }, fields);
+
+            return obj;
+        }
+
+        template<typename T>
+        T bind_fields(const Node& node, const std::string& path) const {
+            constexpr auto& fields = Descriptor<T>::fields;
+
+            return bind_fields_impl<T>(
+                node,
+                path,
+                fields
+            );
+        }
+
+        template<typename T>
+        T convertScalar(const Node&, const std::string&) const;
 };

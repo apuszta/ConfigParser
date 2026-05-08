@@ -1,5 +1,7 @@
 #include "../src/Config.h"
 #include "../src/ConfigParser.h"
+#include "../src/Node.h"
+#include "../src/Binder.h"
 #include <gtest/gtest.h>
 
 class ConfigParserTest : public ::testing::Test {
@@ -19,20 +21,15 @@ protected:
             "a.b.c.d = nested_value\n";
 };
 
-TEST_F(ConfigParserTest, BasicDataParsing) {
+TEST_F(ConfigParserTest, BindingAppConfig) {
     ConfigParser parser;
-    Config cfg = parser.parseConfig(testConfigText);
-    EXPECT_EQ(cfg.get<int>("port"), 8080);
-    EXPECT_EQ(cfg.get<bool>("debug"), true);
-    EXPECT_EQ(cfg.get<std::string>("app_name"), "ConfigParser");
-    EXPECT_EQ(cfg.get<double>("timeout"), 1.5);
+    Node root = parser.parseConfig(testConfigText);
+
+    Binder binder(root);
+    AppConfig cfg = binder.bind<AppConfig>();
+
+    EXPECT_EQ(cfg.db.port, 5432);
+    EXPECT_EQ(cfg.debug, true);
+    EXPECT_EQ(cfg.db.host, "localhost");
 }
 
-TEST_F(ConfigParserTest, NestedKeyParsing) {
-    ConfigParser parser;
-    Config cfg = parser.parseConfig(testConfigText);
-    EXPECT_EQ(cfg.get<std::string>("db.host"), "localhost");
-    EXPECT_EQ(cfg.get<int>("db.port"), 5432);
-    EXPECT_EQ(cfg.get<std::string>("a.b.c.d"), "nested_value");
-    EXPECT_FALSE(cfg.get<std::string>("a.b.c").has_value());
-}

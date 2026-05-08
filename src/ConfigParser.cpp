@@ -56,44 +56,58 @@ static std::string_view trim(std::string_view sv) {
     return std::string_view(first, last - first);
 }
 
-Config ConfigParser::parseConfig(std::string_view text) const {
-    Config config;
+Node ConfigParser::parseConfig(std::string_view text) const {
+    Node root;
+    root.value = Node::Map{};
 
-    for(auto lineView : text | std::ranges::views::split('\n')) {
-        auto parts = lineView | std::ranges::views::split('=');
+    auto& rootMap = std::get<Node::Map>(root.value);
 
-        auto it = std::ranges::begin(parts);
+    for (auto lineView : text | std::views::split('\n')) {
 
-        if (it == std::ranges::end(parts)) {
-            continue;
-        }
+        auto parts = lineView | std::views::split('=');
 
-        auto keyPart = trim(std::string_view((*it).begin(), std::ranges::distance(*it)));
+        auto it = parts.begin();
+        if (it == parts.end()) continue;
+
+        std::string key((*it).begin(), std::ranges::distance(*it));
+        key = trim(key);
+
         ++it;
+        if (it == parts.end()) continue;
 
-        if (it == std::ranges::end(parts)) {
-            continue;
-        }
+        std::string value((*it).begin(), std::ranges::distance(*it));
+        value = trim(value);
 
-        auto valuePart = trim(std::string_view((*it).begin(), std::ranges::distance(*it)));
-
-        auto to_sv = [](auto subrange) {
-            return std::string_view(subrange.begin(), std::ranges::distance(subrange));
-        };
-
-        std::string_view key = to_sv(keyPart);
-        std::string_view value = to_sv(valuePart);
-
-        if (auto intValue = try_parse_int(value)) {
-            config.set(std::string(key), ConfigValue{*intValue});
-        } else if (auto doubleValue = try_parse_double(value)) {
-            config.set(std::string(key), ConfigValue{*doubleValue});
-        } else if (auto boolValue = try_parse_bool(value)) {
-            config.set(std::string(key), ConfigValue{*boolValue});
-        } else {
-            config.set(std::string(key), ConfigValue{std::string(value)});
-        }
+        insert(rootMap, key, value);
     }
 
-    return config;
+    return root;
+}
+
+void ConfigParser::insert(
+    Node::Map& root,
+    std::string_view path,
+    const std::string& value
+) const {
+    size_t start = 0;
+    Node::Map* current = &root;
+
+    while (true) {
+        size_t dot = path.find('.', start);
+        std::string key = std::string(path.substr(start, dot - start));
+
+        if (dot == std::string_view::npos) {
+            (*current)[key].value = value;
+            return;
+        }
+
+        Node& next = (*current)[key];
+
+        if (!next.isObject()) {
+            next.value = Node::Map{};
+        }
+
+        current = std::get_if<Node::Map>(&next.value);
+        start = dot + 1;
+    }
 }
