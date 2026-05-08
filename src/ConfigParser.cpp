@@ -5,41 +5,6 @@
 #include <charconv>
 #include <algorithm>
 
-std::optional<int> try_parse_int(std::string_view sv) {
-    int value;
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    if (ec == std::errc() && ptr == sv.data() + sv.size()) {
-        return value;
-    }
-    return std::nullopt;
-}
-
-bool is_double(std::string_view sv) {
-    return std::count(sv.begin(), sv.end(), '.') == 1;
-}
-
-std::optional<double> try_parse_double(std::string_view sv) {
-    if(!is_double(sv)) {
-        return std::nullopt;
-    }
-
-    double value;
-    auto [ptr, ec] = std::from_chars(sv.data(), sv.data() + sv.size(), value);
-    if (ec == std::errc() && ptr == sv.data() + sv.size()) {
-        return value;
-    }
-    return std::nullopt;
-}
-
-std::optional<bool> try_parse_bool(std::string_view sv) {
-    if (sv == "true") {
-        return true;
-    } else if (sv == "false") {
-        return false;
-    }
-    return std::nullopt;
-}
-
 // Trim whitespace from the beginning and end of a token.
 // This helper is internal to parsing and keeps keys/values normalized.
 static std::string_view trim(std::string_view sv) {
