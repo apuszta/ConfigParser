@@ -24,6 +24,11 @@ class Binder{
             return convert<T>(root, "config");
         }
 
+        template<typename T>
+        T convertPublic(const Node& node, const std::string& path) const {
+            return convert<T>(node, path);
+        }
+
     protected:
         template<typename T>
         T convert(const Node& node, const std::string& path) const {
